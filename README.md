@@ -1,21 +1,73 @@
-# Digital Scam Autopsy 🔍
+<div align="center">
 
-> **"Don't build another 'Is this a scam?' checker. Build a 'Show me how this scam works' analyzer."**
+# Digital Scam Autopsy
 
-Digital Scam Autopsy is an evidence-grounded threat analysis system focusing on Indian UPI, KYC, and banking fraud vectors.
+**An evidence-grounded threat analysis engine that deconstructs social engineering manipulation funnels.**
 
-Instead of outputting an arbitrary probability or a single yes/no verdict, it reconstructs the perpetrator's sequential manipulation chain, anchors every single observation to literal verbatim quotes from the original message, and delivers actionable, India-specific defense steps.
+Focused on Indian UPI, KYC, and banking fraud vectors.
+
+[![Next.js](https://img.shields.io/badge/Next.js-14_App_Router-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict_Mode-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Restrained_Editorial-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+</div>
 
 ---
 
-## ⚡ Core Technical Differentiators
+## The Problem & Core Thesis
+
+> **Don’t build another black-box "Is this a scam? Yes/No" checker. Build a "Show me how this scam works" analyzer.**
+
+Most scam checkers simply output an uncalibrated verdict or percentage probability without explaining the underlying attack mechanics. 
+
+**Digital Scam Autopsy** is built on three strict engineering principles:
+1. **Verbatim Evidence Anchoring**: Every observed indicator and attack stage must be a literal substring of the victim's message. Hallucinated evidence is programmatically rejected.
+2. **Deterministic Pre-Analysis**: Observable domain entities (UPI VPAs, phone numbers, amounts, claimed brands, URL anomalies) are extracted deterministically prior to contextual analysis.
+3. **Context Over Keywords**: Official security advisories (e.g., *"Never share your OTP with anyone"*) and routine payment receipts evaluate to **LOW RISK** with **0 attack stages**, preventing false alarms on educational or transactional text.
+
+---
+
+## Product Walkthrough
+
+### 1. Minimal Input Utility
+Users can paste raw SMS/WhatsApp text or upload message screenshots. Includes pre-configured one-click test scenarios across banking, UPI, utility, and negative control categories.
+
+<p align="center">
+  <img src="public/screenshots/homepage.png" alt="Digital Scam Autopsy Input Interface" width="850" />
+</p>
+
+### 2. Manipulation Attack Chain & Document Inspection
+The core visualization breaks the attack down into sequential persuasion stages (`Trigger` → `Impersonation` → `Deception` → `Action Request` → `Target` → `Consequence`). Selecting any stage immediately highlights the exact evidence quote inside the source message.
+
+<p align="center">
+  <img src="public/screenshots/attack-chain.png" alt="Attack Chain Sequence and Highlighted Evidence" width="850" />
+</p>
+
+### 3. Observable Properties & Immediate Defense Protocol
+Displays extracted UPI VPAs, phone numbers, isolated URL properties (punycode, unencrypted HTTP, shorteners), actionable countermeasures, and direct links to **Helpline 1930** and **cybercrime.gov.in**.
+
+<p align="center">
+  <img src="public/screenshots/defense-protocol.png" alt="Observable Signals and Defense Protocol" width="850" />
+</p>
+
+### 4. Adversarial Negative Control (Contextual Safety)
+When an official security advisory or transaction receipt contains sensitive keywords like `OTP` or `PIN`, the engine correctly recognizes the context and outputs **LOW RISK** with zero attack stages.
+
+<p align="center">
+  <img src="public/screenshots/negative-control.png" alt="Negative Control Safety Verification" width="850" />
+</p>
+
+---
+
+## Architecture & Data Flow
 
 ```text
                INPUT (Pasted Text, Screenshot, or Telegram Forward)
                                      │
                        ┌─────────────┴─────────────┐
                        ▼                           ▼
-              Gemini Vision OCR            Text Normalization
+               Vision OCR Provider         Text Normalization
              (Screenshots only)                  (NFKC)
                        │                           │
                        └─────────────┬─────────────┘
@@ -26,8 +78,8 @@ Instead of outputting an arbitrary probability or a single yes/no verdict, it re
                       • Indian Banking Heuristics (Urgency, KYC Bait, Credential Bait)
                                      │
                                      ▼
-                            GEMINI AI ANALYZER
-                      (Contextual Attack-Chain Funnel)
+                           CONTEXTUAL ANALYZER
+                      (Deconstructs Manipulation Funnel)
                                      │
                                      ▼
                            ZOD SCHEMA VALIDATOR
@@ -46,87 +98,94 @@ Instead of outputting an arbitrary probability or a single yes/no verdict, it re
                         ┌────────────┴────────────┐
                         ▼                         ▼
                  EDITORIAL WEB UI           TELEGRAM BOT
-            • Apple/Linear aesthetic     • Forward & analyze
-            • Interactive step timeline  • Inline 1930 action
-            • Document highlight sync    • Zero app install
+            • Apple/Linear aesthetic     • Direct message forward
+            • Interactive step timeline  • Instant forensic reply
+            • Document highlight sync    • Zero app installation
 ```
-
-### 1. Verbatim Substring Evidence Anchoring
-Every `evidence_quote` in the attack chain and signal list is programmatically validated against the source message. Offsets (`start_offset`, `end_offset`) are preserved and synchronized with the highlight inspector. The AI cannot hallucinate facts and attach them to the user's message.
-
-### 2. Defensible Evidence Confidence (No Fake Percentages)
-We avoid arbitrary calibrated probabilities like *"91% scam probability"*. Instead, confidence (`low`, `medium`, `high`) is calculated deterministically from observable properties:
-```text
-+ Rule matches
-+ Extracted entities
-+ Anchored verbatim quotes
-- Unsupported claims
-```
-
-### 3. Context Over Keywords (Negative Control Tests)
-The engine does **not** trigger an attack chain simply because sensitive keywords (`OTP`, `PIN`, `KYC`, `UPI`) appear. Official bank advisories and routine transaction receipts evaluate to `LOW RISK` with `0` attack stages.
-
-### 4. Telegram Bot Integration (Two Products, One Core)
-Supports both a web application and a Telegram Bot (`/api/telegram`) running on the exact same forensic engine. Users can forward suspicious SMS or WhatsApp messages directly to a bot without opening a browser.
 
 ---
 
-## 🧪 Verified Test Scenarios
+## Verified Test Matrix
 
-The system has been evaluated against both coercive threats and adversarial negative controls:
-
-| Test Scenario | Category | Result | Stages | Grounded Evidence Quotes |
+| Scenario | Attack Category | Evaluation | Stages | Verified Grounded Evidence Quotes |
 | :--- | :--- | :---: | :---: | :--- |
 | **SBI KYC Expiry Threat** | Coercive Phishing | `HIGH RISK` | 6 | `"immediately"`, `"SBI"`, `"KYC has expired"`, `"Update immediately"`, `"http://sbi-kyc-update.info"`, `"BLOCKED within 24 hours"` |
 | **Flipkart UPI Collect** | Reverse UPI Collect | `HIGH RISK` | 6 | `"within 2 hours"`, `"Flipkart"`, `"refund pending"`, `"Accept collect request"`, `"9876543210@ybl"`, `"money will be cancelled"` |
-| **Bank AnyDesk Alert** | Remote Access Trap | `HIGH RISK` | 5 | Authority pretense (`"fraud department"`), Remote tool (`"AnyDesk"`), Credential harvesting |
-| **Electricity Disconnection** | Utility Scam | `HIGH RISK` | 6 | Disconnect threat (`"tonight at 9:30 PM"`), Officer impersonation, Direct UPI demand (`"powerboard@okaxis"`) |
+| **Bank Anti-Fraud Alert** | Remote Access Trap | `HIGH RISK` | 5 | Authority pretense (`"fraud department"`), Remote tool (`"AnyDesk"`), Credential harvesting |
+| **Electricity Disconnection** | Utility Impersonation | `HIGH RISK` | 6 | Disconnect threat (`"tonight at 9:30 PM"`), Utility authority claim, Direct VPA (`"powerboard@okaxis"`) |
 | **Official Bank Advisory** | **Negative Control** | `LOW RISK` | **0** | Recognizes advisory context (*"Never share your OTP"*). No attack chain manufactured. |
 | **Legitimate UPI Receipt** | **Negative Control** | `LOW RISK` | **0** | Recognizes standard transaction confirmation (*"Payment of ₹500 was successful"*). |
-| **Police Scam Alert** | **Adversarial Control** | `LOW RISK` | **0** | Mentions scam keywords in an awareness context (*"Beware of fake electricity bill SMS"*). No false alarm. |
+| **Police Scam Alert** | **Adversarial Control** | `LOW RISK` | **0** | Mentions scam patterns in an educational context (*"Beware of fake electricity bill SMS"*). No false positive. |
 
 ---
 
-## 🚀 Quick Start
+## Telegram Bot Adapter
 
-### 1. Install Dependencies
+In addition to the web dashboard, the engine includes a Telegram bot adapter (`/api/telegram`) running on the exact same core pipeline. Users can forward suspicious messages directly from their messaging apps:
+
+1. Create a bot on Telegram via **[@BotFather](https://t.me/BotFather)** to receive a bot token.
+2. Set `TELEGRAM_BOT_TOKEN` in your environment variables.
+3. Configure your webhook endpoint:
 ```bash
-npm install
+curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://<YOUR_DOMAIN>/api/telegram"
 ```
 
-### 2. Configure Environment (Optional)
-Create `.env.local`:
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18.17+ or 20+
+- npm / yarn / pnpm
+
+### Installation
+
 ```bash
-# Optional: Gemini API Key for AI attack chain & vision OCR
-# (Without this key, text analysis runs 100% deterministically via offline fallback)
+# Clone the repository
+git clone https://github.com/Adityag476/Digital-Scam-Autopsy.git
+cd Digital-Scam-Autopsy
+
+# Install dependencies
+npm install
+
+# Configure environment variables (optional for live AI / Telegram)
+cp .env.local.example .env.local
+```
+
+### Environment Variables (.env.local)
+
+```ini
+# Optional: Provider key for contextual attack chain & screenshot vision
+# (Without this key, text analysis runs 100% deterministically via rule-engine fallback)
 GEMINI_API_KEY=your_gemini_api_key
 
-# Optional: Telegram Bot Token from @BotFather
+# Optional: Telegram bot token for the webhook endpoint
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 ```
 
-### 3. Run Development Server
+### Running Locally
+
 ```bash
+# Start development server
 npm run dev
+
+# Or build for production
+npm run build
+npm run start
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+Visit `http://localhost:3000` to inspect messages.
 
 ---
 
-## 🤖 Telegram Bot Webhook Setup
+## Civic & Legal Resources
 
-1. Message **[@BotFather](https://t.me/BotFather)** on Telegram and create a new bot to receive your `TELEGRAM_BOT_TOKEN`.
-2. Add the token to `.env.local` or your Vercel project environment variables.
-3. Register your webhook via curl:
-```bash
-curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://<YOUR_DEPLOYED_URL>/api/telegram"
-```
-4. Forward any suspicious message to your bot for instant forensic analysis.
-
----
-
-## 🏛 Official Indian Cyber Safety Resources
-
-- **National Cybercrime Helpline:** Dial `1930`
+- **National Cybercrime Helpline:** Dial **1930**
 - **National Cyber Crime Reporting Portal:** [cybercrime.gov.in](https://cybercrime.gov.in)
-- **Telecom Fraud Reporting (Chakshu / Sanchar Saathi):** [sancharsaathi.gov.in](https://sancharsaathi.gov.in)
+- **DoT Suspected Fraud Communication Facility (Chakshu):** [sancharsaathi.gov.in](https://sancharsaathi.gov.in)
+
+---
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
