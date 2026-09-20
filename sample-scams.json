@@ -1,0 +1,37 @@
+[
+  {
+    "id": "kyc-expiry",
+    "label": "Fake KYC expiry (SBI impersonation)",
+    "text": "Dear Customer, your SBI KYC has expired. Your account will be blocked within 24 hours. Update immediately at http://sbi-kyc-update.info or call 9876543210."
+  },
+  {
+    "id": "refund-scam",
+    "label": "Fake refund request",
+    "text": "Your Amazon refund of ₹2,499 is pending. To receive it today, share the OTP sent to your number or complete verification via bit.ly/refund-amz"
+  },
+  {
+    "id": "electricity-disconnect",
+    "label": "Fake electricity bill disconnection",
+    "text": "Dear consumer, your electricity service will be disconnected tonight at 9:30 PM due to unpaid bill. Contact our officer immediately on 8123456789 or pay via UPI: powerboard@okaxis"
+  },
+  {
+    "id": "job-registration-fee",
+    "label": "Fake job offer with registration fee",
+    "text": "Congratulations! You are selected for a Work From Home job with salary ₹25,000/month. To confirm your seat, pay a refundable registration fee of ₹1,999 via UPI to hr.recruiter@ybl and message us on Telegram @jobplacement2026"
+  },
+  {
+    "id": "loan-preapproved",
+    "label": "Fake pre-approved loan",
+    "text": "Congratulations! You have a pre-approved personal loan of ₹5,00,000 at 0% processing fee. Limited time offer, expires today. Share your Aadhaar and PAN details to loanoffice@paytm to proceed."
+  },
+  {
+    "id": "parcel-customs",
+    "label": "Fake customs/parcel hold",
+    "text": "Your parcel is on hold at customs due to unpaid duty of ₹350. Pay immediately via www.cutt.ly/customs-pay to release your parcel today, or it will be returned to sender."
+  },
+  {
+    "id": "screen-share-support",
+    "label": "Fake tech support / screen-share request",
+    "text": "This is calling from your bank's fraud department. We have detected suspicious activity on your account. Please install AnyDesk and share the code so we can secure your account immediately."
+  }
+]
