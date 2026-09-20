@@ -117,8 +117,23 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="text-xs text-slate-500 font-mono hidden sm:block">
-            Evidence-Grounded Threat Analysis
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-slate-500 font-mono hidden md:block">
+              Evidence-Grounded Threat Analysis
+            </div>
+            <a
+              href="https://t.me/DigitalScamAutopsybot"
+              target="_blank"
+              rel="noopener noreferrer"
+              id="header-telegram-bot"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-200 hover:border-slate-300 text-xs font-medium text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5 text-[#0088cc]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.38-.49 1.03-.75 4.04-1.76 6.74-2.92 8.09-3.49 3.85-1.61 4.65-1.89 5.18-1.9.11 0 .37.03.54.17.14.12.18.28.2.45-.01.07.01.22 0 .39z"/>
+              </svg>
+              <span>Telegram Bot</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </a>
           </div>
         </div>
       </header>
@@ -126,7 +141,7 @@ export default function Home() {
       {/* Main Container */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-8 py-10 sm:py-14">
         {!result ? (
-          <div className="space-y-10">
+          <div className="space-y-8">
             {/* Editorial Hero */}
             <div className="space-y-3">
               <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
@@ -135,6 +150,36 @@ export default function Home() {
               <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
                 Most detectors only offer a generic verdict. Digital Scam Autopsy reconstructs the persuasion sequence step-by-step and anchors every conclusion to literal evidence in the message.
               </p>
+            </div>
+
+            {/* Telegram Bot Direct Forward Banner */}
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#0088cc]/10 flex items-center justify-center text-[#0088cc] shrink-0">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.38-.49 1.03-.75 4.04-1.76 6.74-2.92 8.09-3.49 3.85-1.61 4.65-1.89 5.18-1.9.11 0 .37.03.54.17.14.12.18.28.2.45-.01.07.01.22 0 .39z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-900">Forward via Telegram Bot</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">ACTIVE</span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Forward suspicious SMS or WhatsApp messages directly to <span className="font-mono text-slate-800 font-medium">@DigitalScamAutopsybot</span> for instant deconstruction.
+                  </p>
+                </div>
+              </div>
+              <a
+                href="https://t.me/DigitalScamAutopsybot"
+                target="_blank"
+                rel="noopener noreferrer"
+                id="banner-telegram-bot"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-slate-900 transition-colors shadow-2xs shrink-0"
+              >
+                <span>Open Bot</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
             </div>
 
             {/* Core Input Utility Card */}
@@ -275,6 +320,16 @@ export default function Home() {
               className="text-slate-700 hover:underline inline-flex items-center gap-1"
             >
               <span>Chakshu</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </a>
+            <span>·</span>
+            <a
+              href="https://t.me/DigitalScamAutopsybot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-700 hover:underline inline-flex items-center gap-1 font-medium"
+            >
+              <span>Telegram Bot (@DigitalScamAutopsybot)</span>
               <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>
           </div>

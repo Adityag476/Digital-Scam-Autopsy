@@ -9,6 +9,7 @@ Focused on Indian UPI, KYC, and banking fraud vectors.
 [![Next.js](https://img.shields.io/badge/Next.js-14_App_Router-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict_Mode-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Restrained_Editorial-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+[![Telegram Bot](https://img.shields.io/badge/Telegram_Bot-@DigitalScamAutopsybot-229ED9?style=flat-square&logo=telegram)](https://t.me/DigitalScamAutopsybot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 </div>
@@ -119,11 +120,18 @@ When an official security advisory or transaction receipt contains sensitive key
 
 ---
 
-## Telegram Bot Adapter
+## Telegram Bot Integration
 
-In addition to the web dashboard, the engine includes a Telegram bot adapter (`/api/telegram`) running on the exact same core pipeline. Users can forward suspicious messages directly from their messaging apps:
+In addition to the web dashboard, the engine includes a direct Telegram bot adapter running on the exact same core pipeline. Anyone can forward suspicious messages directly from their phone or messaging app for an instant autopsy report:
 
-1. Create a bot on Telegram via **[@BotFather](https://t.me/BotFather)** to receive a bot token.
+### Direct Access
+- **Official Bot**: **[@DigitalScamAutopsybot](https://t.me/DigitalScamAutopsybot)**
+- Simply tap the link or search `@DigitalScamAutopsybot` on Telegram and click **Start**.
+- Forward any suspicious SMS, WhatsApp forward, APK notice, or KYC message to receive an immediate deconstructed attack chain and defense checklist.
+
+### Self-Hosted Adapter Setup
+If hosting your own bot instance:
+1. Create a bot on Telegram via **[@BotFather](https://t.me/BotFather)** to receive an API token.
 2. Set `TELEGRAM_BOT_TOKEN` in your environment variables.
 3. Configure your webhook endpoint:
 ```bash
