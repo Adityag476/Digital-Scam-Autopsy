@@ -96,6 +96,47 @@ const CREDENTIAL_BAIT_PHRASES = [
   ".apk",
 ];
 
+const LOTTERY_ADVANCE_FEE_PHRASES = [
+  "lottery",
+  "won",
+  "winner",
+  "prize",
+  "lucky draw",
+  "cashback",
+  "reward points",
+  "claim your",
+  "to claim",
+  "transaction fee",
+  "processing fee",
+  "registration fee",
+  "advance fee",
+  "delivery charge",
+  "courier fee",
+];
+
+const PAYMENT_SOLICITATION_PHRASES = [
+  "pay fee",
+  "pay the",
+  "pay to",
+  "pay a",
+  "transfer fee",
+  "deposit",
+  "send money",
+  "upi number",
+  "upi id",
+];
+
+const JOB_FRAUD_PHRASES = [
+  "work from home",
+  "part time job",
+  "part-time job",
+  "daily income",
+  "daily earning",
+  "like youtube",
+  "subscribe channel",
+  "task earnings",
+];
+
 const URL_SHORTENERS = [
   "bit.ly",
   "tinyurl.com",
@@ -129,17 +170,23 @@ export function extractEntities(text: string): ExtractedEntities {
   );
 
   const rawHandles = text.match(/[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}/g) || [];
-  const upi_ids = Array.from(
-    new Set<string>(
-      rawHandles.filter((h) =>
-        KNOWN_UPI_HANDLES.some((k) => h.toLowerCase().includes(k))
-      )
-    )
+  const upiLabelMatches = text.match(/upi\s*(?:id|number|no)?\s*[:\-]?\s*([a-zA-Z0-9.\-_@]+)/gi) || [];
+  const extractedUpiFromLabels = upiLabelMatches.map((m) => {
+    const cleaned = m.replace(/upi\s*(?:id|number|no)?\s*[:\-]?\s*/i, "").trim();
+    return cleaned;
+  }).filter((m) => m.length >= 8);
+
+  const validHandles = rawHandles.filter((h) =>
+    KNOWN_UPI_HANDLES.some((k) => h.toLowerCase().includes(k))
   );
 
-  const rupeeMatches = text.match(/₹\s?\d[\d,]*(?:\.\d+)?/g) || [];
-  const inrMatches = text.match(/\b(?:INR|Rs\.?)\s?\d[\d,]*(?:\.\d+)?/gi) || [];
-  const amounts = Array.from(new Set<string>([...rupeeMatches, ...inrMatches]));
+  const upi_ids = Array.from(
+    new Set<string>([...validHandles, ...extractedUpiFromLabels])
+  );
+
+  const rupeePrefixMatches = text.match(/(?:₹|INR|Rs\.?)\s?\d[\d,]*(?:\.\d+)?/gi) || [];
+  const rupeeSuffixMatches = text.match(/\b\d[\d,]*(?:\.\d+)?\s?(?:rs|rupees|\/-)\b/gi) || [];
+  const amounts = Array.from(new Set<string>([...rupeePrefixMatches, ...rupeeSuffixMatches]));
 
   const brands_claimed = Array.from(
     new Set<string>(
@@ -314,6 +361,60 @@ export function detectRuleSignals(text: string): Signal[] {
         evidence_quote: quote,
         explanation:
           "Demands sensitive credentials, OTP, or remote screen-sharing tools. Legitimate banks never solicit these via chat or SMS.",
+        start_offset: anchor?.start,
+        end_offset: anchor?.end,
+      });
+      break;
+    }
+  }
+
+  // Lottery / Prize / Advance Fee Bait
+  for (const phrase of LOTTERY_ADVANCE_FEE_PHRASES) {
+    const quote = findExactQuote(text, phrase);
+    if (quote) {
+      const anchor = anchorEvidence(text, quote);
+      signals.push({
+        id: "lottery_advance_fee_bait",
+        severity: "high",
+        evidence_quote: quote,
+        explanation:
+          "Promises unexpected winnings, lottery prizes, or cashbacks conditioned upon paying an advance fee or processing charge.",
+        start_offset: anchor?.start,
+        end_offset: anchor?.end,
+      });
+      break;
+    }
+  }
+
+  // Direct Payment Solicitation
+  for (const phrase of PAYMENT_SOLICITATION_PHRASES) {
+    const quote = findExactQuote(text, phrase);
+    if (quote) {
+      const anchor = anchorEvidence(text, quote);
+      signals.push({
+        id: "unsolicited_payment_demand",
+        severity: "high",
+        evidence_quote: quote,
+        explanation:
+          "Solicits direct payment, transfer, or fee remittance to an unverified individual or UPI account.",
+        start_offset: anchor?.start,
+        end_offset: anchor?.end,
+      });
+      break;
+    }
+  }
+
+  // Job / Task Fraud Bait
+  for (const phrase of JOB_FRAUD_PHRASES) {
+    const quote = findExactQuote(text, phrase);
+    if (quote) {
+      const anchor = anchorEvidence(text, quote);
+      signals.push({
+        id: "job_task_fraud_bait",
+        severity: "high",
+        evidence_quote: quote,
+        explanation:
+          "Lures victims with lucrative work-from-home tasks, YouTube video rating jobs, or false daily income promises.",
         start_offset: anchor?.start,
         end_offset: anchor?.end,
       });

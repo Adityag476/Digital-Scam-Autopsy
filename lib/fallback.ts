@@ -41,10 +41,12 @@ export function generateDeterministicAutopsy(
   // Determine primary vector
   let isKyc = normLower.includes("kyc") || normLower.includes("verify") || normLower.includes("deactivated");
   let isRefund = normLower.includes("refund") || normLower.includes("collect request");
-  let isJob = normLower.includes("job") || normLower.includes("salary") || normLower.includes("telegram");
+  let isJob = normLower.includes("job") || normLower.includes("salary") || normLower.includes("telegram") || normLower.includes("work from home");
   let isUtility = normLower.includes("electricity") || normLower.includes("power") || normLower.includes("disconnected");
   let isLoan = normLower.includes("loan") || normLower.includes("pre-approved");
   let isTech = normLower.includes("anydesk") || normLower.includes("teamviewer") || normLower.includes("fraud department");
+  let isLottery = normLower.includes("lottery") || normLower.includes("won") || normLower.includes("prize") || normLower.includes("reward") || normLower.includes("lucky draw") || normLower.includes("cashback");
+  let isPaymentDemand = normLower.includes("pay") || normLower.includes("fee") || normLower.includes("charge") || normLower.includes("upi");
 
   // Attack chain stages
   const chain: ScamAutopsy["attack_chain"] = [];
@@ -153,6 +155,14 @@ export function generateDeterministicAutopsy(
     "update immediately",
     "accept collect request",
     "pay a refundable registration fee",
+    "pay the transaction fee",
+    "to claim please pay",
+    "please pay",
+    "pay fee",
+    "pay the",
+    "pay to",
+    "pay",
+    "to claim",
     "contact our officer",
     "share your aadhaar",
     "pay immediately",
@@ -166,9 +176,11 @@ export function generateDeterministicAutopsy(
     if (anchor) {
       chain.push({
         stage: "action_request",
-        label: "Call to Action",
+        label: isLottery || isPaymentDemand ? "Advance Fee Demand" : "Call to Action",
         evidence_quote: anchor.quote,
-        explanation: "Instructs victim to execute an untrusted financial transaction, install software, or navigate to a spoofed link.",
+        explanation: isLottery || isPaymentDemand
+          ? "Commands the recipient to send funds upfront under the guise of an administrative or transaction processing charge."
+          : "Instructs victim to execute an untrusted financial transaction, install software, or navigate to a spoofed link.",
         start_offset: anchor.start,
         end_offset: anchor.end,
       });
@@ -197,9 +209,21 @@ export function generateDeterministicAutopsy(
     if (anchor) {
       chain.push({
         stage: "target",
-        label: "Unauthorized Direct UPI Transfer",
+        label: "Direct UPI Capital Extraction",
         evidence_quote: anchor.quote,
-        explanation: `Routes funds straight into an adversary's private virtual payment address (${entities.upi_ids[0]}).`,
+        explanation: `Routes payments directly into an unverified account or individual payment address (${entities.upi_ids[0]}).`,
+        start_offset: anchor.start,
+        end_offset: anchor.end,
+      });
+    }
+  } else if (entities.amounts.length > 0) {
+    const anchor = anchorEvidence(messageText, entities.amounts[0]);
+    if (anchor) {
+      chain.push({
+        stage: "target",
+        label: "Monetary Extortion / Advance Fee",
+        evidence_quote: anchor.quote,
+        explanation: `Targets an immediate illicit payment of ${entities.amounts[0]} without institutional escrow or verifiable backing.`,
         start_offset: anchor.start,
         end_offset: anchor.end,
       });
@@ -235,15 +259,25 @@ export function generateDeterministicAutopsy(
   }
 
   // Stage 6: Consequence
-  const consequencePhrases = ["blocked within 24 hours", "money will be cancelled", "will be disconnected", "returned to sender", "account will be blocked"];
+  const consequencePhrases = [
+    "blocked within 24 hours",
+    "money will be cancelled",
+    "will be disconnected",
+    "returned to sender",
+    "account will be blocked",
+    "fee of",
+    "fee",
+  ];
   for (const cp of consequencePhrases) {
     const anchor = anchorEvidence(messageText, cp);
     if (anchor) {
       chain.push({
         stage: "consequence",
-        label: "Threatened Penalty",
+        label: isLottery ? "Irreversible Advance Fee Loss" : "Threatened Penalty",
         evidence_quote: anchor.quote,
-        explanation: "Emphasizes the punitive consequence if instructions are not followed promptly.",
+        explanation: isLottery
+          ? "Victim loses the advance payment; promised winnings or lottery funds are entirely non-existent."
+          : "Emphasizes the punitive consequence if instructions are not followed promptly.",
         start_offset: anchor.start,
         end_offset: anchor.end,
       });
@@ -274,10 +308,26 @@ export function generateDeterministicAutopsy(
     unsupportedClaimCount: 0,
   });
 
-  const isHighRisk = signals.some((s) => s.severity === "high") || entities.upi_ids.length > 0 || urlRisks.length > 0;
+  const isHighRisk =
+    signals.some((s) => s.severity === "high") ||
+    entities.upi_ids.length > 0 ||
+    urlRisks.length > 0 ||
+    isLottery ||
+    isKyc ||
+    isJob ||
+    isTech ||
+    isRefund ||
+    isUtility ||
+    chain.length >= 2;
+
+  const finalRiskLevel: ScamAutopsy["risk_level"] = isHighRisk
+    ? "high"
+    : chain.length > 0 || signals.length > 0
+    ? "medium"
+    : "low";
 
   return {
-    risk_level: isHighRisk ? "high" : signals.length > 0 ? "medium" : "low",
+    risk_level: finalRiskLevel,
     analysis_confidence: confidence,
     summary:
       "This communication exhibits systemic markers of targeted social engineering designed to induce hasty compliance via institutional impersonation, synthetic urgency, and unauthorized payment or credential harvesting.",

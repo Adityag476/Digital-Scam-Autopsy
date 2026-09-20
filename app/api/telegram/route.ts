@@ -77,19 +77,23 @@ export async function POST(req: NextRequest) {
     try {
       const { result } = await analyzeScam({ text });
 
+      const isActuallySafe =
+        result.risk_level === "low" &&
+        (!result.attack_chain || result.attack_chain.length === 0);
+
       const riskEmoji =
         result.risk_level === "high"
           ? "🔴"
-          : result.risk_level === "medium"
+          : result.risk_level === "medium" || !isActuallySafe
           ? "🟡"
           : "🟢";
 
       const riskLabel =
         result.risk_level === "high"
           ? "HIGH RISK"
-          : result.risk_level === "medium"
+          : result.risk_level === "medium" || !isActuallySafe
           ? "ELEVATED RISK"
-          : "LOW RISK (SAFE CONTROL)";
+          : "LOW RISK (SAFE ADVISORY / TRANSACTION)";
 
       let reply = `${riskEmoji} *${riskLabel}*\n`;
       reply += `*Evidence Confidence:* ${result.analysis_confidence.toUpperCase()}\n\n`;

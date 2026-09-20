@@ -53,23 +53,33 @@ export type ExtractedEntities = z.infer<typeof ExtractedEntitiesSchema>;
 
 export const ScamAutopsySchema = z.object({
   risk_level: z.enum(["low", "medium", "high"]),
-  analysis_confidence: z.enum(["low", "medium", "high"]),
-  summary: z.string().max(320),
-  extracted_entities: ExtractedEntitiesSchema,
+  analysis_confidence: z.enum(["low", "medium", "high"]).default("medium"),
+  summary: z.string().max(400),
+  extracted_entities: ExtractedEntitiesSchema.default({
+    urls: [],
+    phones: [],
+    upi_ids: [],
+    amounts: [],
+    brands_claimed: [],
+  }),
   url_risks: z.array(UrlRiskIndicatorSchema).default([]),
   signals: z.array(SignalSchema).default([]),
   attack_chain: z.array(AttackChainNodeSchema).max(7).default([]),
   recommended_actions: z
     .array(
       z.object({
-        title: z.string().max(80),
-        steps: z.array(z.string().max(160)).min(1).max(5),
+        title: z.string().max(100),
+        steps: z.array(z.string().max(250)).min(1).max(5),
       })
     )
     .min(1)
     .max(5),
-  safe_reply_templates: z.array(z.string().max(200)).max(3).default([]),
-  disclaimer: z.string(),
+  safe_reply_templates: z.array(z.string().max(250)).max(3).default([]),
+  disclaimer: z
+    .string()
+    .default(
+      "Scam Autopsy provides heuristic threat pattern analysis based on observed social engineering markers. It is an analytical decision-support aid and does not constitute a legal determination."
+    ),
 });
 
 export type ScamAutopsy = z.infer<typeof ScamAutopsySchema>;

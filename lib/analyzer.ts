@@ -19,9 +19,13 @@ import {
 import { generateDeterministicAutopsy } from "@/lib/fallback";
 import { calculateEvidenceConfidence } from "@/lib/confidence";
 
-const apiKey = process.env.GEMINI_API_KEY || "";
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
-const MODEL_NAME = "gemini-3.6-flash";
+const CANDIDATE_MODELS = [
+  "gemini-3.5-flash-lite",
+  "gemini-flash-lite-latest",
+  "gemini-3.5-flash",
+  "gemini-flash-latest",
+  "gemini-3.6-flash",
+];
 
 function stripJsonFences(raw: string): string {
   return raw
@@ -32,34 +36,64 @@ function stripJsonFences(raw: string): string {
     .trim();
 }
 
+function getGenAI(): GoogleGenerativeAI | null {
+  const key = process.env.GEMINI_API_KEY || "";
+  return key ? new GoogleGenerativeAI(key) : null;
+}
+
 async function ocrScreenshot(base64Image: string, mimeType: string): Promise<string> {
+  const genAI = getGenAI();
   if (!genAI) {
     throw new Error("GEMINI_API_KEY is not configured for OCR screenshot extraction.");
   }
   const cleanBase64 = base64Image.replace(/^data:[^;]+;base64,/, "");
 
-  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-  const result = await model.generateContent([
-    OCR_PROMPT,
-    { inlineData: { data: cleanBase64, mimeType: mimeType || "image/png" } },
-  ]);
-  return result.response.text().trim();
+  let lastError: any = null;
+  for (const modelName of CANDIDATE_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent([
+        OCR_PROMPT,
+        { inlineData: { data: cleanBase64, mimeType: mimeType || "image/png" } },
+      ]);
+      const text = result.response.text().trim();
+      if (text) return text;
+    } catch (err: any) {
+      console.warn(`OCR model ${modelName} failed (${err?.status || err?.message}), trying next...`);
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("All candidate OCR models failed.");
 }
 
 async function callAnalyzer(prompt: string): Promise<string> {
+  const genAI = getGenAI();
   if (!genAI) {
     throw new Error("GEMINI_API_KEY not configured.");
   }
-  const model = genAI.getGenerativeModel({
-    model: MODEL_NAME,
-    systemInstruction: SYSTEM_PROMPT,
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: "application/json",
-    },
-  });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+
+  let lastError: any = null;
+  for (const modelName of CANDIDATE_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction: SYSTEM_PROMPT,
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json",
+        },
+      });
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      if (text && text.trim().length > 0) {
+        return text;
+      }
+    } catch (err: any) {
+      console.warn(`Analyzer model ${modelName} failed (${err?.status || err?.message}), trying next...`);
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("All candidate analyzer models failed.");
 }
 
 export interface AnalyzeInput {
@@ -97,6 +131,8 @@ export async function analyzeScam(input: AnalyzeInput): Promise<AnalysisResponse
   const ruleSignals = detectRuleSignals(normalizedText);
   const urlRisks = analyzeUrlRisks(entities.urls, entities.brands_claimed);
 
+  const genAI = getGenAI();
+
   // 4. Try Gemini if configured, otherwise use deterministic engine
   if (genAI) {
     try {
@@ -116,16 +152,57 @@ export async function analyzeScam(input: AnalyzeInput): Promise<AnalysisResponse
         }
       }
 
+      if (parsedJson && typeof parsedJson === "object") {
+        if (!parsedJson.extracted_entities) parsedJson.extracted_entities = entities;
+        if (!parsedJson.url_risks) parsedJson.url_risks = urlRisks;
+        if (!parsedJson.analysis_confidence) parsedJson.analysis_confidence = "medium";
+        if (!parsedJson.summary) {
+          parsedJson.summary =
+            parsedJson.executive_summary ||
+            parsedJson.overview ||
+            parsedJson.description ||
+            parsedJson.scam_summary ||
+            "Social engineering attempt detected.";
+        }
+        if (Array.isArray(parsedJson.safe_reply_templates)) {
+          parsedJson.safe_reply_templates = parsedJson.safe_reply_templates.map((t: any) =>
+            typeof t === "string" ? t : t?.template || t?.reply || t?.text || JSON.stringify(t)
+          );
+        }
+        if (Array.isArray(parsedJson.recommended_actions)) {
+          parsedJson.recommended_actions = parsedJson.recommended_actions.map((a: any) => {
+            if (typeof a === "string") return { title: a, steps: [a] };
+            return {
+              title: a?.title || a?.name || a?.action || "Protective Action",
+              steps: Array.isArray(a?.steps) ? a.steps : [a?.step || a?.description || "Do not comply"],
+            };
+          });
+        }
+        if (Array.isArray(parsedJson.attack_chain)) {
+          parsedJson.attack_chain = parsedJson.attack_chain.map((node: any) => ({
+            ...node,
+            label: node.label || node.title || node.name || "Observed Attack Stage",
+            explanation: node.explanation || node.description || "Manipulative interaction observed in message.",
+          }));
+        }
+      }
+
       let parsed = parsedJson
         ? ScamAutopsySchema.safeParse(parsedJson)
         : null;
 
       // Attempt one schema repair if schema validation failed
       if (parsed && !parsed.success && parsedJson) {
+        console.warn("Gemini schema parse failed, attempting repair. Issues:", parsed.error.issues);
         try {
           const repairPrompt = buildRepairPrompt(rawJson, parsed.error.issues);
           rawJson = await callAnalyzer(repairPrompt);
           parsedJson = JSON.parse(stripJsonFences(rawJson));
+          if (parsedJson && typeof parsedJson === "object") {
+            if (!parsedJson.extracted_entities) parsedJson.extracted_entities = entities;
+            if (!parsedJson.url_risks) parsedJson.url_risks = urlRisks;
+            if (!parsedJson.analysis_confidence) parsedJson.analysis_confidence = "medium";
+          }
           parsed = ScamAutopsySchema.safeParse(parsedJson);
         } catch {
           // Fallback will activate
